@@ -16,7 +16,7 @@
           <a-form
             id="components-form-demo-validate-other"
             :form="form"
-            :layout="horizontal"
+            layout="horizontal"
             @submit="handleSubmit"
           >
             <a-form-item
@@ -32,11 +32,9 @@
                 ]"
                 placeholder="请选择一个类别"
               >
-                <a-select-option value="china">
-                  车辆管理
-                </a-select-option>
-                <a-select-option value="usa">
-                  人员在位
+                <a-select-option
+                  v-for="(item,index) in advicetypes" :value="item.value">
+                  {{ item.name }}
                 </a-select-option>
               </a-select>
             </a-form-item>
@@ -47,23 +45,44 @@
               <a-textarea
                 :rows="8"
                 autosize:true
+                v-decorator="[
+                  'textarea',
+                  {
+                    rules: [{ required: true, message: '请详细描述您的问题!' }]
+                  }
+                ]"
                 placeholder="请详细描述亲的建议，如能还原场景、提供解决方案，将便于我们更快优化亲的使用体验。"
               />
             </a-form-item>
             <a-form-item
               v-bind="formItemLayout"
               label="添加图片">
+<!--              <a-upload-->
+<!--                v-decorator="[-->
+<!--                  'upload',-->
+<!--                  { valuePropName: 'fileList', getValueFromEvent: normFile }-->
+<!--                ]"-->
+<!--                name="logo"-->
+<!--                action="/upload.do"-->
+<!--                list-type="picture"-->
+<!--              >-->
+<!--                <a-button> <a-icon type="upload" /> 点击选择图片上传 </a-button>-->
+<!--              </a-upload>-->
               <a-upload
-                v-decorator="[
-                  'upload',
-                  { valuePropName: 'fileList', getValueFromEvent: normFile }
-                ]"
-                name="logo"
-                action="/upload.do"
-                list-type="picture"
+                action="https://www.mocky.io/v2/5cc8019d300000980a055e76"
+                listType="picture-card"
+                :fileList="fileList"
+                @preview="handlePreview"
+                @change="handleChange"
               >
-                <a-button> <a-icon type="upload" /> 点击选择图片上传 </a-button>
+                <div>
+                  <a-icon type="plus" />
+                  <div class="ant-upload-text">点击上传图片</div>
+                </div>
               </a-upload>
+              <a-modal :visible="previewVisible" :footer="null" @cancel="handleCancel">
+                <img alt="example" style="width: 100%" :src="previewImage" />
+              </a-modal>
             </a-form-item>
             <a-form-item
               :wrapper-col="{ span: 4, offset: 16 }"
@@ -86,12 +105,12 @@
         :xl="6">
         <div class="advice-example right">
           <a-list
-            :data-source="data"
+            :data-source="examples"
             bordered>
             <a-list-item
               slot="renderItem"
               slot-scope="item, index">
-              <a href="#">{{ item }}</a>
+              <a href="#">{{ item.title }}</a>
             </a-list-item>
             <div
               slot="header"
@@ -116,24 +135,51 @@ export default {
   },
   data() {
     return {
-      data: [
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-      ],
+      formItemLayout:{
+        type:'',
+        content:''
+      },
+      advicetypes: [],
+      examples: [],
+      previewVisible: false,
+      previewImage: '',
+      fileList: [{
+        // uid: '-1',
+        // name: 'xxx.png',
+        // status: 'done',
+        // url: 'https://zos.alipayobjects.com/rmsportal/jkjgkEfvpUPVyRjUImniVslZfWPnJuuZ.png',
+      }],
     };
   },
   beforeCreate() {
     this.form = this.$form.createForm(this);
   },
+  created() {
+    this.getExamples(),
+    this.getAdviceTypes();
+  },
   methods: {
+    handleCancel () {
+      this.previewVisible = false
+    },
+    handlePreview (file) {
+      this.previewImage = file.url || file.thumbUrl
+      this.previewVisible = true
+    },
+    handleChange ({ fileList }) {
+      this.fileList = fileList
+    },
     handleSubmit(e) {
-      e.preventDefault();
       this.form.validateFields((err, values) => {
+        debugger
         if (!err) {
           console.log(`Received values of form: `, values);
+          this.$message({
+            message:'问题提交成功',
+            type:'success'
+          })
+        } else {
+
         }
       });
     },
@@ -143,6 +189,32 @@ export default {
         return e;
       }
       return e && e.fileList;
+    },
+    getAdviceTypes() {
+      const _this = this;
+      this.axios(`http://localhost/api/advicetypes`)
+        .then((res) => {
+          if (res.data.length) {
+            this.loading = false;
+            _this.$store.commit(`SAVE_ADVICE_TYPE`, res.data);
+            this.advicetypes = JSON.parse(localStorage.getItem(`advicetypes`)) || this.$store.state.advicetypes;
+          } else {
+            this.$message.error(`数据获取失败`);
+          }
+        });
+    },
+    // 获取帮助列表
+    getExamples() {
+      const _this = this;
+      this.axios(`http://localhost/api/examples`).then((res) => {
+        if (res.data.length) {
+          _this.$store.commit(`SAVE_EXAMPLES`, res.data);
+          this.examples = JSON.parse(localStorage.getItem(`examples`)) ||
+            this.$store.state.examples;
+        } else {
+          this.$message.error(`数据获取失败`);
+        }
+      });
     },
   },
 };

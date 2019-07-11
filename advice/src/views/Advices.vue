@@ -1,12 +1,22 @@
 <template>
   <layout name="LayoutDefault">
-    <div class="adices">
+    <div class="advices">
       <a-icon
         type="message"
         class="message-icon" /><span
           class="message-title"
         >大家的优质声音</span
         >
+      <span v-show="advicestag">
+        <a-icon
+          type="right-circle"
+          class="rightcircle"/>
+        <a-tag
+          closable
+          color="#108ee9"
+          @close="reset"
+        >{{ advicestag }}</a-tag>
+      </span>
       <a-row :gutter="10">
         <a-col
           :xs="24"
@@ -15,50 +25,72 @@
           :lg="18"
           :xl="18">
           <div class="left">
-            <p class="advice-title">
-              您的建议我们将全力处理，如有咨询或疑问需要解决，请进入
-              <router-link to="/">常见建议</router-link>
-            </p>
-            <a-card>
-              <a-card-grid
-                v-for="(item, index) in typeData"
-                :key="index"
-                style="width:25%;textAlign:'center'"
-              >{{ item.name }}</a-card-grid
-              >
-            </a-card>
-            <a-list
-              :pagination="pagination"
-              :data-source="listData"
-              item-layout="vertical"
-              size="large"
-            >
-              <a-list-item
-                slot="renderItem"
-                slot-scope="item, index"
-                key="item.title"
-              >
-                <template
-                  v-for="{ type, text } in actions"
-                  slot="actions">
-                  <span :key="type">
-                    <a-icon
-                      :type="type"
-                      style="margin-right: 8px" />
-                    {{ text }}
-                  </span>
-                </template>
-                <a-list-item-meta :description="item.description">
-                  <a
-                    slot="title"
-                    :href="item.href">{{ item.title }}</a>
-                  <a-avatar
-                    slot="avatar"
-                    :src="item.avatar" />
-                </a-list-item-meta>
-                {{ item.content }}
-              </a-list-item>
-            </a-list>
+            <a-skeleton :loading="loading">
+              <!--            <a-card @tabChange="selectedone(index)">-->
+              <!--              <a-card-grid-->
+              <!--                v-for="(item, index) in advicetype"-->
+              <!--                :key="index"-->
+              <!--                style="width:25%;textAlign:'center'"-->
+
+              <!--              ><a-icon-->
+              <!--                :type="item.icon"-->
+              <!--                style="margin-right:10px"/>{{ item.name }}</a-card-grid>-->
+              <!--            </a-card>-->
+              <a-row :gutter="2">
+                <a-col
+                  v-for="(item, index) in advicetype"
+                  :span="4"
+                  :key="index"
+                  class="type-col">
+                  <div
+                    class="typecontent"
+                    @click="selectedone"><a-icon
+                      :type="item.icon"
+                      style="margin-right:4px"
+                    />{{ item.name }}
+                  </a-icon>
+                  </div>
+                </a-col>
+              </a-row>
+            </a-skeleton>
+            <div>
+              <a-skeleton :loading="loading">
+                <a-list
+                  :pagination="pagination"
+                  :data-source="selectedAdvices"
+                  item-layout="vertical"
+                  size="large"
+                  class="advice-list"
+                >
+                  <a-list-item
+                    slot="renderItem"
+                    slot-scope="item, index"
+                    key="item.title"
+                  >
+                    <template
+                      v-for="{ type, text } in actions"
+                      slot="actions">
+                      <span :key="type">
+                        <a-icon
+                          :type="type"
+                          style="margin-right: 8px"
+                          @click="like()"/>
+                        {{ text }}
+                      </span>
+                    </template>
+                    <a-list-item-meta :description="item.description">
+                      <a
+                        slot="title"
+                        :href="item.href">{{ item.title }}</a>
+                      <a-avatar
+                        slot="avatar"
+                        :src="item.avatar" />
+                    </a-list-item-meta>
+                    {{ item.content }}
+                  </a-list-item>
+                </a-list>
+              </a-skeleton>
+            </div>
           </div>
         </a-col>
         <a-col
@@ -73,27 +105,30 @@
               type="primary"
               icon="edit"
               block
+              @click="add()"
             >我要提建议</a-button
             >
             <div class="advice-notice">
               <p class="letter-bd">请详细描述您的问题以及建议</p>
               <p>我们会细心聆听，解决问题！</p>
             </div>
-            <a-list
-              :data-source="data"
-              bordered
-              class="advice-example-list">
-              <a-list-item
-                slot="renderItem"
-                slot-scope="item, index">
-                <a href="#">{{ item }}</a>
-              </a-list-item>
-              <div
-                slot="header"
-                class="advice-example-title">
-                以下咨询可能对你有帮助！
-              </div>
-            </a-list>
+            <a-skeleton :loading="loading">
+              <a-list
+                :data-source="examples"
+                bordered
+                class="advice-example-list">
+                <a-list-item
+                  slot="renderItem"
+                  slot-scope="item, index">
+                  <a href="#">{{ item.title }}</a>
+                </a-list-item>
+                <div
+                  slot="header"
+                  class="advice-example-title">
+                  以下咨询可能对你有帮助！
+                </div>
+              </a-list>
+            </a-skeleton>
           </div>
         </a-col>
       </a-row>
@@ -104,30 +139,6 @@
 <script>
 import Layout from "../layouts/Layout";
 
-const typeData = [
-  { id: 1, name: `值班管理` },
-  { id: 1, name: `角色管理` },
-  { id: 1, name: `用户管理` },
-  { id: 1, name: `请销假管理` },
-  { id: 1, name: `日程安排` },
-  { id: 1, name: `人员在位` },
-  { id: 1, name: `督办` },
-  { id: 1, name: `用印管理` },
-  { id: 1, name: `车辆管理` },
-];
-const listData = [];
-
-for (let i = 0; i < 23; i++) {
-  listData.push({
-    href: `https://vue.ant.design/`,
-    title: `协同办公系统问题 ${i}`,
-    avatar: `https://zos.alipayobjects.com/rmsportal/ODTLcjxAfvqbxHnVXCYX.png`,
-    description: `用户： na***@163.com 2019/07/01 09:32:45.`,
-    content:
-      `We supply a series of design principles, practical patterns and high quality design resources (Sketch and Axure), to help people create their product prototypes beautifully and efficiently.`,
-  });
-}
-
 export default {
   name: `advices`,
   components: {
@@ -135,15 +146,12 @@ export default {
   },
   data() {
     return {
-      data: [
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-      ],
-      typeData,
-      listData,
+      loading: true,
+      large: `large`,
+      advicestag: ``,
+      examples: [],
+      advicetype: [],
+      advices: [],
       pagination: {
         onChange: (page) => {
           console.log(page);
@@ -151,15 +159,113 @@ export default {
         pageSize: 10,
       },
       actions: [
-        { type: `dislike-o`, text: `156` },
-        { type: `like-o`, text: `156` },
+        { type: `like`, text: `156` },
+        { type: `dislike`, text: `156` },
       ],
     };
+  },
+  computed: {
+    selectedAdvices() {
+      console.log(this.advicestag);
+
+      if (this.advicestag === `` ||this.advicestag === `全部分类`) {
+        return this.advices;
+      }
+      return this.advices.filter((item) => {
+        console.log(item.type);
+        return item.type === this.advicestag;
+      });
+    },
+  },
+  created() {
+    this.getAdviceTypes();
+    this.getExamples();
+    this.getAdvices();
+  },
+  methods: {
+    selectedone(e) {
+      this.advicestag = e.target.innerText;
+    },
+    reset(e) {
+      e.preventDefault();
+      this.advicestag = `全部分类`;
+    },
+    add() {
+      this.$router.push(`/add`);
+    },
+    like() {
+      this.likes = 1;
+      this.dislikes = 0;
+      this.action = `liked`;
+    },
+    dislike() {
+      this.likes = 0;
+      this.dislikes = 1;
+      this.action = `disliked`;
+    },
+    // 获取建议类型
+    getAdviceTypes() {
+      const _this = this;
+      this.axios(`http://localhost/api/advicetypes`).then((res) => {
+        if (res.data.length) {
+          this.loading = false;
+          _this.$store.commit(`SAVE_ADVICE_TYPE`, res.data);
+          this.advicetype = JSON.parse(localStorage.getItem(`advicetypes`)) || this.$store.state.advicetype;
+        } else {
+          this.$message.error(`数据获取失败`);
+        }
+      });
+    },
+    // 获取帮助列表
+    getExamples() {
+      const _this = this;
+      this.axios(`http://localhost/api/examples`).then((res) => {
+        if (res.data.length) {
+          this.loading = false;
+          _this.$store.commit(`SAVE_EXAMPLES`, res.data);
+          this.examples = JSON.parse(localStorage.getItem(`examples`)) ||
+            this.$store.state.examples;
+        } else {
+          this.$message.error(`数据获取失败`);
+        }
+      });
+    },
+    //  获取建议列表
+    getAdvices() {
+      const _this = this;
+      this.axios(`http://localhost/api/advices`).then((res) => {
+        if (res.data.length) {
+          this.loading = false;
+          _this.$store.commit(`SAVE_ADVICES`, res.data);
+          this.advices = JSON.parse(localStorage.getItem(`advices`)) || this.$store.state.advices;
+        }
+      });
+    },
   },
 };
 </script>
 <style>
 .adices {
+}
+.type-col{
+  height:100px;line-height:100px;text-align:center;margin-bottom:2px;
+}
+.typecontent{
+  background: #eee;
+  color: #000;
+  font-size: 16px;
+}
+.typecontent:hover{
+  cursor:pointer;
+  color: #fff;
+  background: #5c6971;
+}
+.rightcircle{
+  margin-left:10px;
+  margin-right:10px;
+}
+.advice-list{
+  margin-top:10px;
 }
 .advice-notice {
   color: #000;

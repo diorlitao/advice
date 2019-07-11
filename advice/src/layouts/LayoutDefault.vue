@@ -9,7 +9,7 @@
             align="bottom"
             class="nav-top">
             <a-col :span="2"><p class="height-10">{{ user ? user.name : `Loading...` }}</p></a-col>
-            <a-col :span="2"><p class="height-10">系统首页</p></a-col>
+            <a-col :span="2"><p class="height-10"><a :href="user.url">系统首页</a></p></a-col>
           </a-row>
         </div>
       </div>
@@ -46,10 +46,7 @@ export default {
     };
   },
   created() {
-    // Simulate fetching user data.
-    setTimeout(() => {
-      this.user = { name: `Litao Dior` };
-    }, 2000);
+    this.user = JSON.parse(localStorage.getItem('user')) || {name:'刁立涛',info:{},url:'#'};
   },
 };
 </script>

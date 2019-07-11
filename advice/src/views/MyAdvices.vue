@@ -28,24 +28,27 @@
               :size="large"
               type="primary"
               icon="edit"
+              @click="add"
               block>我要提建议</a-button>
             <div class="advice-notice">
               <p class="letter-bd">请详细描述您的问题以及建议</p>
               <p>我们会细心聆听，解决问题！</p>
             </div>
+            <a-skeleton :loading="loading">
             <a-list
-              :data-source="data"
+              :data-source="examples"
               bordered
               class="advice-example-list">
               <a-list-item
                 slot="renderItem"
                 slot-scope="item, index">
-                <a href="#">{{ item }}</a>
+                <a href="#">{{ item.title }}</a>
               </a-list-item>
               <div
                 slot="header"
                 class="advice-example-title">以下咨询可能对你有帮助！</div>
             </a-list>
+            </a-skeleton>
           </div>
         </a-col>
       </a-row>
@@ -64,15 +67,32 @@ export default {
   },
   data() {
     return {
-      data: [
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-        `系统运行缓慢1`,
-      ],
+      loading:true,
+      examples: [],
     };
   },
+  created(){
+    this.getExamples()
+  },
+  methods:{
+    add(){
+      this.$router.push('/add')
+    },
+    // 获取帮助列表
+    getExamples() {
+      const _this = this;
+      this.axios(`http://localhost/api/examples`).then((res) => {
+        if (res.data.length) {
+          this.loading = false
+          _this.$store.commit(`SAVE_EXAMPLES`, res.data);
+          this.examples = JSON.parse(localStorage.getItem(`examples`)) ||
+            this.$store.state.examples;
+        } else {
+          this.$message.error(`数据获取失败`);
+        }
+      });
+    },
+  }
 };
 </script>
 <style>
