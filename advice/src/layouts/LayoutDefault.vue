@@ -31,7 +31,7 @@
         <slot/>
       </main>
       <footer class="layout-footer">
-        706 &copy;2018 Create by Ant UED
+        706 &copy;2019 Create by Ant UED
       </footer>
     </div>
   </div>
@@ -52,6 +52,11 @@ export default {
 </script>
 
 <style lang="scss">
+.router-link-exact-active{
+  color:#fff;
+  transition: color 0.3s;
+  text-decoration: none;
+}
 .nav-top{
   padding-top:5px;
 
@@ -120,7 +125,7 @@ export default {
 
   &-main {
     max-width: 80em;
-    min-height:40em;
+    min-height:20em;
     margin-right: auto;
     margin-left: auto;
     padding-top: 1.5em;
@@ -130,7 +135,6 @@ export default {
   &-footer {
     padding-bottom: 3em;
     padding-top: 3em;
-    margin-top: 3em;
     margin-bottom: 0px;
     border-top: 1px solid #c0c0c0;
     text-align: center;

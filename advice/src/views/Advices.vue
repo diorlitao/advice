@@ -120,7 +120,7 @@
                 <a-list-item
                   slot="renderItem"
                   slot-scope="item, index">
-                  <a href="#">{{ item.title }}</a>
+                  <a :href="item.url" target="_blank">{{ item.title }}</a>
                 </a-list-item>
                 <div
                   slot="header"
@@ -275,6 +275,8 @@ export default {
   padding-top: 13px;
   text-align: center;
   background-color: #fff;
+  padding-top:1em;
+  padding-bottom:1em;
 }
 .advice-example-list {
   background-color: #f1f1f1 !important;
@@ -300,5 +302,8 @@ export default {
 }
 .ant-list-bordered {
   border: none;
+}
+.letter-bd{
+  font-weight: 700;
 }
 </style>

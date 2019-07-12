@@ -110,7 +110,7 @@
             <a-list-item
               slot="renderItem"
               slot-scope="item, index">
-              <a href="#">{{ item.title }}</a>
+              <a :href="item.url" target="_blank">{{ item.title }}</a>
             </a-list-item>
             <div
               slot="header"
